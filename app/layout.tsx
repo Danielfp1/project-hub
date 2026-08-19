@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@gravatar-com/hovercards/dist/style.css";
+import "./gravatar-card-dark.css";
 import "./globals.css";
 
 const geistSans = Geist({

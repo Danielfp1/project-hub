@@ -1,0 +1,76 @@
+.gravatar-hovercard--dark {
+  color: #eceff4;
+}
+
+.gravatar-hovercard--dark .gravatar-hovercard__inner {
+  background-color: #3b4252;
+  border-color: #4c566a;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.gravatar-hovercard--dark .gravatar-hovercard__avatar {
+  background-color: #434c5e;
+}
+
+.gravatar-hovercard--dark .gravatar-hovercard__job,
+.gravatar-hovercard--dark .gravatar-hovercard__location,
+.gravatar-hovercard--dark .gravatar-hovercard__profile-url,
+.gravatar-hovercard--dark .gravatar-hovercard__profile-link {
+  color: #a0a8b4;
+}
+
+.gravatar-hovercard--dark .gravatar-hovercard__description {
+  color: #d8dee9;
+}
+
+.gravatar-hovercard--dark .gravatar-hovercard__button {
+  color: #88c0d0;
+  border-color: rgba(136, 192, 208, 0.45);
+}
+
+.gravatar-hovercard--dark .gravatar-hovercard__button:hover {
+  border-color: rgba(136, 192, 208, 0.85);
+  background-color: rgba(136, 192, 208, 0.08);
+}
+
+.gravatar-hovercard--dark .gravatar-hovercard__drawer .gravatar-hovercard__drawer-card {
+  background-color: #434c5e;
+}
+
+.gravatar-hovercard--dark .gravatar-hovercard__drawer .gravatar-hovercard__drawer-title {
+  color: #eceff4;
+}
+
+.gravatar-hovercard--dark .gravatar-hovercard__drawer .gravatar-hovercard__drawer-close path {
+  fill: #eceff4;
+}
+
+.gravatar-hovercard--dark .gravatar-hovercard__drawer .gravatar-hovercard__drawer-item-label {
+  color: #eceff4;
+}
+
+.gravatar-hovercard--dark .gravatar-hovercard__drawer .gravatar-hovercard__drawer-item-text {
+  color: #d8dee9;
+}
+
+.gravatar-hovercard--dark .gravatar-hovercard__drawer .gravatar-hovercard__drawer-item-link {
+  color: #88c0d0;
+}
+
+.gravatar-hovercard--dark.gravatar-hovercard--skeleton .gravatar-hovercard__avatar-link,
+.gravatar-hovercard--dark.gravatar-hovercard--skeleton .gravatar-hovercard__personal-info-link,
+.gravatar-hovercard--dark.gravatar-hovercard--skeleton .gravatar-hovercard__social-link,
+.gravatar-hovercard--dark.gravatar-hovercard--skeleton .gravatar-hovercard__profile-link,
+.gravatar-hovercard--dark.gravatar-hovercard--skeleton .gravatar-hovercard__profile-url {
+  background-color: #434c5e;
+}
+
+.gravatar-hovercard--dark.gravatar-hovercard--error .gravatar-hovercard__error-message {
+  color: #a0a8b4;
+}
+
+.gravatar-hovercard--dark.gravatar-hovercard--error
+  .gravatar-hovercard__error-message.gravatar-hovercard__error-message--claim-gravatar
+  a {
+  color: #88c0d0;
+}
