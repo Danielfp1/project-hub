@@ -99,3 +99,4 @@ out/
 
 # pnpm store
 .pnpm-store/
+.vercel
