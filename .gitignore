@@ -70,7 +70,13 @@ typings/
 .cache
 
 # next.js build output
-.next
+.next/
+
+# output
+out/
+
+# vercel
+.vercel/
 
 # nuxt.js build output
 .nuxt
@@ -86,3 +92,6 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+# pnpm store
+.pnpm-store/
