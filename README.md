@@ -15,6 +15,16 @@ Um hub pessoal de projetos e portfólio digital para apresentar meus projetos, h
 * Next.js
 * TypeScript
 * Tailwind CSS
+* [@gravatar-com/hovercards](https://www.npmjs.com/package/@gravatar-com/hovercards)
+
+## 🚀 Getting started | Como rodar
+
+```bash
+npm install
+npm run dev
+```
+
+Abra [http://localhost:3000](http://localhost:3000). A página inicial exibe o cartão oficial do perfil [gravatar.com/danielfp](https://gravatar.com/danielfp).
 
 ---
 
