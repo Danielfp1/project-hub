@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://dan-figueiredo.com.br"),
   title: "Daniel Figueiredo Pereira — Project Hub",
   description:
     "Cartão de visita digital de Daniel Figueiredo Pereira, desenvolvedor web em Goiânia.",
