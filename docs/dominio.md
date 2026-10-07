@@ -1,68 +1,151 @@
 # Domínio do portfólio
 
-Endereço canônico: `https://dan-figueiredo.com.br`.
+Estado em 07/10/2026: concluído e testado.
 
-O handle do Bluesky continua `dan-figueiredo.dev.br`. A rota `app/.well-known/atproto-did/route.ts` precisa responder **200** nesse host. Redirect de domínio no painel da Vercel manda o host inteiro embora e derruba a verificação. O redirect fica no código, com essa exceção.
+| Host | Papel |
+|---|---|
+| `https://dan-figueiredo.com.br` | Endereço canônico. Abre o portfólio (HTTP 200). |
+| `https://dan-figueiredo.dev.br` | Redirect **308** para `https://dan-figueiredo.com.br/`. |
+| `https://www.dan-figueiredo.dev.br` | Redirect **308** para `https://dan-figueiredo.com.br/`. |
 
-`metadataBase` em `app/layout.tsx` já é `https://dan-figueiredo.com.br`. `lib/gravatar.ts` não muda nesta entrega (`GRAVATAR_PROFILE_SLUG` continua `danielfp`).
+`metadataBase` em `app/layout.tsx` é `https://dan-figueiredo.com.br`. Não há `proxy.ts` neste setup: o redirect é do painel da Vercel.
 
-## O que ainda falta no DNS
+DNS atual:
 
-Consulta em 05/10/2026:
-
-| Domínio | Nameserver | No ar? |
+| Domínio | Nameserver | Registro que importa |
 |---|---|---|
-| `dan-figueiredo.dev.br` | `ns1.vercel-dns.com`, `ns2.vercel-dns.com` | sim, na Vercel |
-| `dan-figueiredo.com.br` | `a.auto.dns.br`, `b.auto.dns.br` | não: sem endereço A, `www` inexistente |
+| `dan-figueiredo.com.br` | `a.auto.dns.br`, `b.auto.dns.br` (Registro.br) | **A** no ápice → IP da Vercel (hoje `216.198.79.1`) |
+| `dan-figueiredo.dev.br` | `ns1.vercel-dns.com`, `ns2.vercel-dns.com` | Zona na Vercel; domínio ligado ao `project-hub` |
 
-A zona do `.com.br` já foi criada no projeto Vercel. Ela só vale no mundo quando o nameserver no Registro.br for o da Vercel. Por isso `https://dan-figueiredo.com.br` não abre o portfólio, e o `proxy.ts` de redirect **não está** no repositório.
+## Modelo mental (uma dúvida recorrente)
 
-### Passo no Registro.br
+É **um** projeto Vercel (`project-hub`), **um** deploy. Não são dois servidores.
 
-1. Abra o domínio `dan-figueiredo.com.br`.
-2. Em servidores DNS, troque `a.auto.dns.br` / `b.auto.dns.br` por `ns1.vercel-dns.com` e `ns2.vercel-dns.com` (o mesmo par do `.dev.br`).
-3. No projeto Vercel `project-hub`, deixe `dan-figueiredo.com.br` como domínio primário.
-4. Espere `https://dan-figueiredo.com.br` abrir o portfólio. Aí sim crie o redirect abaixo.
+`dan-figueiredo.com.br`, `dan-figueiredo.dev.br` e `www.dan-figueiredo.dev.br` são **nomes** do mesmo app. O redirect só diz: “quem chegar pelo `.dev.br` vai para o `.com.br`”.
 
-Mantenha o `.dev.br` nos nameservers da Vercel. Esse host continua servindo o DID do Bluesky.
+## Quem configura o quê
 
-## Redirect (só depois que o .com.br abrir)
+| Site | O que fazer | O que **não** fazer |
+|---|---|---|
+| **Registro.br** → domínio `dan-figueiredo.com.br` | Apontar o domínio para o IP da Vercel (registro A / “Endereço do site”). | Não colocar `ns1.vercel-dns.com` aqui. Não usar essa tela para redirect `.dev.br` → `.com.br`. |
+| **Vercel** → projeto `project-hub` → **Settings → Domains** | Ligar os domínios; marcar redirect do `.dev.br` (e `www`) para o `.com.br` com **308**. | Não confundir com a página de Domains da **conta** (Connected Projects / DNS Records). |
+| **Registro.br** → domínio `dan-figueiredo.dev.br` | Nada. DNS já é da Vercel. | Não mexer nos nameservers do `.dev.br`. |
+| Subdomínio no `.dev.br` | Só na Vercel, no projeto certo. A zona é da Vercel e o registro nasce lá. | Não criar CNAME no Registro.br para esse nome. |
+| Subdomínio no `.com.br` | 1) adicionar o host no projeto Vercel; 2) CNAME no Registro.br, no `.com.br`. | Não usar a tela **Endereço do site** (ela é o domínio principal). Não esperar um segundo campo na Vercel depois do CNAME. |
 
-Arquivo na raiz do `project-hub`: `proxy.ts`. Nesta versão do Next.js (16) o nome `middleware.ts` está obsoleto; a função se chama `proxy`.
+## Passo a passo que funcionou
 
-Se o host for `dan-figueiredo.dev.br` ou `www.dan-figueiredo.dev.br` e o caminho **não** for `/.well-known/atproto-did`, responder **308** para o mesmo caminho e a mesma query em `https://dan-figueiredo.com.br`.
+### 1. Ligar o `.com.br` no projeto Vercel
 
-```ts
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+No projeto **project-hub** → **Settings** → **Domains**, o domínio `dan-figueiredo.com.br` já entra como Production.
 
-const HOSTS_DEV = new Set([
-  "dan-figueiredo.dev.br",
-  "www.dan-figueiredo.dev.br",
-]);
+Se aparecer **Invalid Configuration**, abra **View DNS configuration**. A Vercel mostra um registro **A**, nome `@`, e um **IP**. Copie esse IP. Não invente outro.
 
-export function proxy(request: NextRequest) {
-  const host = request.nextUrl.hostname;
-  if (!HOSTS_DEV.has(host)) return NextResponse.next();
-  if (request.nextUrl.pathname === "/.well-known/atproto-did") {
-    return NextResponse.next();
-  }
+Nesta entrega a Vercel **não** pediu nameserver da Vercel para o `.com.br`. Pediu só o A no provedor atual (Registro.br).
 
-  const destino = new URL(
-    `${request.nextUrl.pathname}${request.nextUrl.search}`,
-    "https://dan-figueiredo.com.br",
-  );
-  return NextResponse.redirect(destino, 308);
-}
-```
+### 2. Apontar o `.com.br` no Registro.br
 
-Conferir depois do deploy:
+Abra o domínio **`dan-figueiredo.com.br`** (não o `.dev.br`).
 
-- `https://dan-figueiredo.dev.br/.well-known/atproto-did` → 200, com o DID em texto.
-- Outra rota no `.dev.br` → 308 para o mesmo caminho em `https://dan-figueiredo.com.br`.
+Servidores DNS devem ficar:
 
-## Gravatar (task futura)
+- Servidor 1: `a.auto.dns.br`
+- Servidor 2: `b.auto.dns.br`
 
-O perfil público passou a ser [gravatar.com/danzfigueiredo](https://gravatar.com/danzfigueiredo). A home ainda busca `api.gravatar.com/v3/profiles/danielfp` e, quando a API falha, cai no texto de `components/GravatarCard.tsx` (“Não foi possível carregar o perfil do Gravatar.”).
+**Não** troque por `ns1.vercel-dns.com` / `ns2.vercel-dns.com`. Nesses servidores a zona do `.com.br` responde **Query refused** (“Pesquisa recusada” no Registro.br). O `.dev.br` usa esse par e funciona; o `.com.br` não tem zona lá.
 
-A correção desejada é o portfólio funcionar sem a API do Gravatar. Atualizar o slug para `danzfigueiredo` só restaura o cartão atual; essa troca não é a correção.
+Interface do Registro.br neste domínio costuma mostrar Contatos, DNS (**Alterar servidores DNS**) e Provedor de serviços. Pode **não** aparecer **Configurar zona DNS** de cara.
+
+Caminho que liberou o apontamento:
+
+1. Em DNS, **Alterar servidores DNS** → **Utilizar DNS do Registro.br** (mesmo que já mostre `a.auto.dns.br`). Confirme.
+2. Se aparecer “servidores DNS em transição” com contador (~2 h), espere e atualize a página. Nesse período a zona ainda não edita.
+3. Quando abrir a tela de **Endereço do site** (ou zona / nova entrada):
+   - Cole o **IPv4** copiado da Vercel.
+   - Não cole URL (`https://...`) — isso seria redirect HTTP do Registro.br, não o apontamento para a Vercel.
+   - Não use CNAME no ápice nessa tela.
+   - Se for zona avançada: tipo **A**, nome **em branco** (no Registro.br, vazio = o domínio; o `@` da Vercel é esse campo vazio).
+4. Em **Provedor de serviços**, deixe sem provedor. Isso não é DNS.
+
+Pronto quando:
+
+- `https://dan-figueiredo.com.br` abre o portfólio;
+- na Vercel, `dan-figueiredo.com.br` fica **Valid Configuration**.
+
+### 3. Redirect `.dev.br` → `.com.br` na Vercel
+
+Faça no **projeto**, não na página do domínio na conta.
+
+**Tela certa**
+
+- Projeto **project-hub** → **Settings** → **Domains**
+- URL no estilo: `…/project-hub/settings/domains`
+- Lista com `dan-figueiredo.com.br`, `dan-figueiredo.dev.br`, `www…`, `*.vercel.app`
+
+**Tela errada**
+
+- Domains da conta / página do domínio `dan-figueiredo.dev.br` com **Connected Projects** e **DNS Records**
+- Ali só vê projetos ligados e DNS. **Não** tem o redirect do site.
+
+Em cada um de `dan-figueiredo.dev.br` e `www.dan-figueiredo.dev.br`:
+
+1. Abra o menu do domínio (**Edit** / ⋯ / **Config**, conforme a UI).
+2. **Redirect to** → `dan-figueiredo.com.br`.
+3. Código: **308**.
+4. Salve.
+
+`dan-figueiredo.com.br` fica **sem** redirect (é o destino).
+
+Código HTTP:
+
+| Código | Use? |
+|---|---|
+| **308** | Sim — permanente e preserva o método HTTP. |
+| 301 | Permanente, mas alguns clientes mudam POST → GET. |
+| 307 / 302 | Temporários — não use para troca de domínio canônico. |
+
+### 4. Conferência
+
+- `https://dan-figueiredo.com.br` → 200, portfólio.
+- `https://dan-figueiredo.dev.br` → 308 para `https://dan-figueiredo.com.br/`.
+- `https://www.dan-figueiredo.dev.br` → 308 para `https://dan-figueiredo.com.br/`.
+
+## Subdomínio (email-to-podcast)
+
+`email-to-podcast.dan-figueiredo.dev.br` já está no projeto **email-to-podcast** (Production, **Valid Configuration**), junto com `email-to-podcast-gamma.vercel.app`. Os dois nomes são o mesmo deploy. O redirect de `dan-figueiredo.dev.br` → `.com.br` não afeta esse subdomínio.
+
+### Por que o `.dev.br` se faz só na Vercel e o `.com.br` não
+
+| Domínio | Quem guarda o DNS | O que acontece ao adicionar um nome no projeto |
+|---|---|---|
+| `.dev.br` | Vercel (`ns1.vercel-dns.com`, `ns2.vercel-dns.com`) | A Vercel cria o registro. Fica **Valid Configuration** sem CNAME manual. |
+| `.com.br` | Registro.br (`a.auto.dns.br`, `b.auto.dns.br`) | A Vercel só anota o nome. O registro (A ou CNAME) é publicado no Registro.br. Enquanto isso, **Invalid Configuration**. |
+
+O registro A do `dan-figueiredo.com.br` não vale para subdomínio. `email-to-podcast.dan-figueiredo.com.br` precisa de um CNAME próprio.
+
+Não dá para repetir o fluxo do `.dev.br` no `.com.br` enquanto a zona do `.com.br` estiver no Registro.br. Apontar o `.com.br` para `ns1.vercel-dns.com` / `ns2.vercel-dns.com` foi recusado (“Pesquisa recusada”): esses servidores respondem **Query refused** para o `.com.br`.
+
+### Ordem: Vercel primeiro, CNAME depois, Vercel não pede mais nada
+
+1. Projeto **email-to-podcast** (não o `project-hub`) → **Settings** → **Domains**.
+2. Adicione `email-to-podcast.dan-figueiredo.com.br`. Vai aparecer **Invalid Configuration**. Isso é esperado.
+3. Abra **View DNS configuration** e copie o registro **CNAME** (nome e valor). O valor é um hostname, não um IP. Não reutilize o IP do portfólio.
+4. No **Registro.br**, domínio **`dan-figueiredo.com.br`**:
+   - **Configurar zona DNS** → **Nova entrada** → tipo **CNAME**.
+   - Nome: `email-to-podcast` (só o prefixo).
+   - Valor: o hostname copiado da Vercel.
+   - **Adicionar** → **Salvar alterações**.
+5. Se não houver **Configurar zona DNS**, abra **Configurar endereçamento** → **Modo avançado** → confirme. A mensagem “servidores DNS em transição” com contador (~2 h) é a espera. Não troque os servidores. Quando zerar, atualize a página e faça o passo 4.
+6. A tela **Endereço do site** não é o lugar do CNAME de subdomínio. Ela configura só `dan-figueiredo.com.br`. “Nome alternativo (CNAME)” ali substitui o apontamento do domínio principal.
+
+Depois que o CNAME estiver salvo no Registro.br, **não se adiciona outro campo na Vercel**. O host já foi incluído no passo 2. Atualize **Settings → Domains** do projeto **email-to-podcast** até `email-to-podcast.dan-figueiredo.com.br` passar para **Valid Configuration**. Aí `https://email-to-podcast.dan-figueiredo.com.br` abre o mesmo app.
+
+## Bluesky e redirect no painel
+
+O handle / DNS do `.dev.br` continua na Vercel. O redirect de domínio do painel manda **todas** as rotas do `.dev.br` para o `.com.br`, inclusive `/.well-known/atproto-did`.
+
+Decisão desta entrega: redirect no painel (simples). Não há `proxy.ts`. Se no futuro a verificação do Bluesky no `.dev.br` precisar de **200** com o DID nesse host, aí o redirect sai do painel e volta para código (`proxy.ts`), com exceção dessa rota. A rota `app/.well-known/atproto-did/route.ts` já existe no repo.
+
+## Gravatar (resolvido)
+
+O perfil público é [gravatar.com/danzfigueiredo](https://gravatar.com/danzfigueiredo). A home busca a API (`api.gravatar.com/v3/profiles/danzfigueiredo`); se falhar, usa o snapshot local em `lib/gravatar.ts`. Atualizar o snapshot manualmente se o perfil no Gravatar mudar.

@@ -24,7 +24,7 @@ npm install
 npm run dev
 ```
 
-Abra [http://localhost:3000](http://localhost:3000). A página inicial exibe o cartão oficial do perfil [gravatar.com/danielfp](https://gravatar.com/danielfp).
+Abra [http://localhost:3000](http://localhost:3000). A página inicial exibe o cartão do perfil [gravatar.com/danzfigueiredo](https://gravatar.com/danzfigueiredo). Os dados vêm da API do Gravatar; se a API falhar, a home usa um snapshot local.
 
 ---
 
