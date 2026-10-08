@@ -127,18 +127,45 @@ Não dá para repetir o fluxo do `.dev.br` no `.com.br` enquanto a zona do `.com
 
 ### Ordem: Vercel primeiro, CNAME depois, Vercel não pede mais nada
 
-1. Projeto **email-to-podcast** (não o `project-hub`) → **Settings** → **Domains**.
-2. Adicione `email-to-podcast.dan-figueiredo.com.br`. Vai aparecer **Invalid Configuration**. Isso é esperado.
-3. Abra **View DNS configuration** e copie o registro **CNAME** (nome e valor). O valor é um hostname, não um IP. Não reutilize o IP do portfólio.
-4. No **Registro.br**, domínio **`dan-figueiredo.com.br`**:
-   - **Configurar zona DNS** → **Nova entrada** → tipo **CNAME**.
-   - Nome: `email-to-podcast` (só o prefixo).
-   - Valor: o hostname copiado da Vercel.
-   - **Adicionar** → **Salvar alterações**.
-5. Se não houver **Configurar zona DNS**, abra **Configurar endereçamento** → **Modo avançado** → confirme. A mensagem “servidores DNS em transição” com contador (~2 h) é a espera. Não troque os servidores. Quando zerar, atualize a página e faça o passo 4.
-6. A tela **Endereço do site** não é o lugar do CNAME de subdomínio. Ela configura só `dan-figueiredo.com.br`. “Nome alternativo (CNAME)” ali substitui o apontamento do domínio principal.
+Cada host tem a própria tela **View DNS configuration**. O valor de um não serve para o outro. O `www` visto em 08/10/2026 era este:
 
-Depois que o CNAME estiver salvo no Registro.br, **não se adiciona outro campo na Vercel**. O host já foi incluído no passo 2. Atualize **Settings → Domains** do projeto **email-to-podcast** até `email-to-podcast.dan-figueiredo.com.br` passar para **Valid Configuration**. Aí `https://email-to-podcast.dan-figueiredo.com.br` abre o mesmo app.
+| Type | Name | Value |
+|---|---|---|
+| CNAME | `www.email-to-podcast` | `066b06558b30696f.vercel-dns-017.com.` |
+
+Esse hostname (`….vercel-dns-017.com.`) é o que entra no Registro.br. Não use `cname.vercel-dns.com` no lugar. Não use o IP `216.198.79.1` do portfólio. Abra a tela do host sem `www` e copie o valor **dessa** linha; ele pode ser outro código.
+
+1. Projeto **email-to-podcast** (não o `project-hub`) → **Settings** → **Domains**.
+2. Adicione o host (`email-to-podcast.dan-figueiredo.com.br` e, se quiser, o `www`). **Invalid Configuration** nessa hora é esperado.
+3. Em cada linha, abra **View DNS configuration**. Anote as duas colunas da tabela: **Name** e **Value**. O Value já vem com ponto no final. Copie os dois.
+4. No **Registro.br**, domínio **`dan-figueiredo.com.br`** → **Configurar zona DNS** → **Nova entrada**:
+
+   | Campo no Registro.br | O que colar |
+   |---|---|
+   | Tipo | `CNAME` |
+   | Nome | só a coluna **Name** da Vercel, por exemplo `www.email-to-podcast` |
+   | Dados | a coluna **Value** inteira, com o ponto, por exemplo `066b06558b30696f.vercel-dns-017.com.` |
+
+   **Adicionar** → **Salvar alterações**. Repita uma entrada para cada host.
+
+5. Se não houver **Configurar zona DNS**, abra **Configurar endereçamento** → **Modo avançado** → confirme. A mensagem “servidores DNS em transição” com contador (~2 h) é a espera para a zona abrir. Não troque os servidores. Quando zerar, atualize a página e faça o passo 4.
+6. A tela **Endereço do site** não é o lugar desse CNAME. Ela configura só `dan-figueiredo.com.br`. “Nome alternativo (CNAME)” ali substitui o apontamento do domínio principal.
+
+A lista do Registro.br mostra o nome já com o domínio (`www.email-to-podcast.dan-figueiredo.com.br`). Na hora de digitar, o campo **Nome** fica só `www.email-to-podcast`. O campo **Dados** é o Value da Vercel, nunca o próprio subdomínio.
+
+O ponto final do Value faz parte do registro. Sem ele, o Registro.br acrescenta `.dan-figueiredo.com.br`. Dados `email-to-podcast` ou `www.email-to-podcast` apontam o nome para ele mesmo. A Vercel fica **Invalid Configuration** mesmo horas depois. Consulta em 08/10/2026: esses dois CNAMEs não existiam no DNS público (`Non-existent domain`).
+
+Propagação, depois de salvar o valor certo: cerca de **15 minutos** (TTL da zona). A Vercel às vezes marca **Valid Configuration** em poucos minutos. Se passar de uma hora e continuar inválido, o **Dados** salvo não é o Value daquela linha.
+
+Conferência:
+
+```text
+nslookup -type=CNAME www.email-to-podcast.dan-figueiredo.com.br a.auto.dns.br
+```
+
+O `canonical name` tem que ser o Value da Vercel daquele host (no exemplo do `www`, `066b06558b30696f.vercel-dns-017.com`). “Non-existent domain” significa que o registro não está publicado nesse nome.
+
+Depois que o CNAME estiver salvo no Registro.br, não se adiciona outro campo na Vercel. Atualize **Settings → Domains** do projeto **email-to-podcast** até a linha passar para **Valid Configuration**. Aí o endereço abre o mesmo app.
 
 ## Bluesky e redirect no painel
 
